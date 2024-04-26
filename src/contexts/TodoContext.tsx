@@ -12,7 +12,8 @@ const enum ReducerActionType {
   ADD_TODO,
   UPDATE_TODO,
   CHECK_TODO,
-  DELETE_TODO
+  DELETE_TODO,
+  CLEAR_TODO
 }
 
 type AddTodoAction = {
@@ -35,7 +36,16 @@ type DeleteTodoAction = {
   payload: Pick<InitialState, 'id'>
 }
 
-type ReducerAction = AddTodoAction | UpdateTodoAction | CheckTodoAction | DeleteTodoAction
+type ClearTodoAction = {
+  type: ReducerActionType.CLEAR_TODO
+}
+
+type ReducerAction =
+  | AddTodoAction
+  | UpdateTodoAction
+  | CheckTodoAction
+  | DeleteTodoAction
+  | ClearTodoAction
 
 function reducer(state: InitialState[], action: ReducerAction): InitialState[] {
   switch (action.type) {
@@ -61,6 +71,9 @@ function reducer(state: InitialState[], action: ReducerAction): InitialState[] {
     case ReducerActionType.DELETE_TODO: {
       return state.filter(todo => todo.id !== action.payload.id)
     }
+    case ReducerActionType.CLEAR_TODO: {
+      return []
+    }
     default: throw new Error('error')
   }
 }
@@ -69,6 +82,7 @@ function useTodoContext() {
   const [state, dispatch] = useReducer(reducer, null, () => {
     const value = localStorage.getItem('todo')
     if (value != null) return JSON.parse(value)
+    return []
   })
 
   const addTodo = (todo: InitialState) => dispatch({
@@ -99,7 +113,11 @@ function useTodoContext() {
     }
   })
 
-  return { state, addTodo, updateTodo, checkTodo, deleteTodo }
+  const clearTodo = () => dispatch({
+    type: ReducerActionType.CLEAR_TODO
+  })
+
+  return { state, addTodo, updateTodo, checkTodo, deleteTodo, clearTodo }
 }
 
 type UseTodoContextType = ReturnType<typeof useTodoContext>
@@ -109,7 +127,8 @@ const initialTodoContextState: UseTodoContextType = {
   addTodo: () => { },
   updateTodo: () => { },
   checkTodo: () => { },
-  deleteTodo: () => { }
+  deleteTodo: () => { },
+  clearTodo: () => { },
 }
 
 export const TodoContext = createContext<UseTodoContextType>(initialTodoContextState)
